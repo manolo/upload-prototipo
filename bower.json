@@ -1,0 +1,32 @@
+{
+  "name": "vaadin-upload",
+  "authors": [
+    "manolo@vaadin.com"
+  ],
+  "description": "Vaadin Upload Element",
+  "main": "vaadin-upload.html",
+  "moduleType": [],
+  "keywords": [
+    "vaadin",
+    "upload",
+    "elements"
+  ],
+  "license": "Apache",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "dropzone": "enyo/dropzone#~4.2.0",
+    "file-upload": "winhowes/file-upload#~1.6.3",
+    "paper-input": "PolymerElements/paper-input#~1.1.5",
+    "iron-form": "PolymerElements/iron-form#~1.0.13",
+    "paper-progress": "PolymerElements/paper-progress#~1.0.8",
+    "vaadin-combo-box": "vaadin/vaadin-combo-box#~1.0.0-alpha3",
+    "paper-checkbox": "PolymerElements/paper-checkbox#~1.1.0"
+  }
+}
