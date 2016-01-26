@@ -2,67 +2,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <link rel="import" href="bower_components/polymer/polymer.html">
-  <link rel="import" href="bower_components/paper-input/paper-input.html">
-  <link rel="import" href="bower_components/iron-form/iron-form.html">
-  <link rel="import" href="bower_components/file-upload/file-upload.html">
-  <link rel="import" href="bower_components/vaadin-combo-box/vaadin-combo-box.html">
-  <link rel="import" href="bower_components/paper-checkbox/paper-checkbox.html">
-  <link rel="import" href="bower_components/file-upload/file-upload.html">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../polymer/polymer.html">
+  <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+  <link rel="import" href="vaadin-upload.html">
   <style>
-    form {
-      font-family: arial;
-      width: 300px;
+    body {
+      font-family: Arial;
     }
-    paper-checkbox {
-      line-height: 5em;
+    .button {
+       color: #1DB6E4;
+       font-size: 95%;
+       font-weight: bold;
     }
-
+    .drop {
+      font-size: 130%;
+    }
+    .button, .drop {
+       display: inline-block;
+       text-align: center;
+    }
+    .button2 {
+      position: absolute;
+      background: #1DB6E4;
+      color: white;
+      padding-left: 10px;
+      padding-right: 10px;
+      margin-left: -55px;
+    }
+    vaadin-upload {
+      margin: 10px;
+    }
   </style>
 </head>
 <body>
+<!-- http://manolo-demo:8080/upload/servlet.gupld  -->
+<!-- http://gwtupload.alcala.org/gupld/servlet.gupld -->
+<vaadin-upload id="u1"
+   target="http://manolo-demo:8080/upload/servlet.gupld" method="POST"
+   droppable="true" multi="true" accept="image/*"
+   headers='{"Accepddt":"application/json"}'
+   max-file-size="0"
+   >
 
-  <paper-progress id="progress" value="0" class="blue"></paper-progress><br>
+  <div class="button">
+    ADD FILE(S)
+  </div>
+  <div class="drop">
+    <iron-icon icon="cloud-upload"></iron-icon>
+    Drop files here ...
+  </div>
 
-  <form is="iron-form" enctype="multipart/form-data" content-type="multipart/form-data" id="formGet" method="post" action="http://gwtupload.alcala.org/gupld/servlet.gupld">
-    <paper-input name="name" label="Name" required value="a"></paper-input>
-    <paper-input name="animal" label="Favourite animal" required value="b"></paper-input>
-    <vaadin-combo-box label="Gender" required value="male"></vaadin-combo-box>
+</vaadin-upload>
 
+<vaadin-upload id="u1"
+   target="http://manolo-demo:8080/upload/servlet.gupld" method="POST"
+   droppable="true" multi="true" accept="image/*">
 
-    <paper-checkbox >Subscribe to news</paper-checkbox>
-    <br>
-    <paper-button raised onclick="submitHandler(event)">Submit</paper-button>
-    <paper-button raised onclick="resetHandler(event)">Reset</paper-button>
-  </form>
+  <div class="button button2">
+    ADD FILE(S)
+  </div>
+  <div class="drop">
+    <iron-icon icon="cloud-upload"></iron-icon>
+    Drop files here ...
+  </div>
 
-  <file-upload method="post" multi="true"  target="http://gwtupload.alcala.org/gupld/servlet.gupld">UploadMe</file-upload>
-
-
-  <p>An example of <code>&lt;file-upload&gt;</code>:</p>
-
-<h2>Without drop enabled:</h2>
-<file-upload>Choose File</file-upload>
-
-<h2>With drop enabled and images only:</h2>
-<file-upload droppable="true" raised="true" multi="true" accept="image/*">Choose File</file-upload>
-
-<h2>Images only</h2>
-<file-upload accept="image/*">Choose File</file-upload>
-
+</vaadin-upload>
 
 
 <script type="text/javascript">
-  function submitHandler() {
-    document.querySelector('form').submit();
-  }
-
-  HTMLImports.whenReady(function(){
-    document.querySelector('form').addEventListener('iron-form-presubmit', function(e){
-      console.log("ADSFAADFAF", e);
-    });
-    document.querySelector('vaadin-combo-box').items = ["male","female"]
+  HTMLImports.whenReady(function() {
+    document.querySelector('#u1').addEventListener('upload-success', function(e){
+      console.log("success", e.detail.xhr);
+    })
+    document.querySelector('#u1').addEventListener('upload-error', function(e){
+      console.log("error", e.detail.xhr);
+    })
+    document.querySelector('#u1').errorHandler = function(file, xhr) {
+      try {
+        var json = JSON.parse(xhr.responseText);
+        if (!json.error) return json.error
+      } catch (e) {
+        return "Unknown server response. " + xhr.responseText.substr(0, 20);
+      }
+    }
   });
 </script>
 </body>

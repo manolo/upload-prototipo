@@ -1,20 +1,34 @@
+<!--
+@license
+Copyright (c) 2016 Vaadin. All rights reserved.
+This code may only be used under the Apache-2.0 license
+-->
 <link rel="import" href="../polymer/polymer.html">
 
+<!--
+An element for uploading files to server.
+Example:
+    <vaadin-upload target="destination_url"></vaadin-upload>
+
+@demo
+-->
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-progress/paper-progress.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 
 <dom-module id="vaadin-upload">
+
   <style type="text/css">
     .enabled {
-      border: 1px dashed #555;
-      @apply(--file-upload-upload-border-enabled);
+      border: 1px dashed #1DB6E4;
+      @apply(--vaadin-upload-upload-border-enabled);
     }
 
     .hover {
       opacity: .7;
       border: 1px dashed #111;
-      @apply(--file-upload-upload-border-hover);
+      @apply(--vaadin-upload-upload-border-hover);
     }
 
     #UploadBorder{
@@ -23,84 +37,125 @@
       padding: 20px;
       max-height: 300px;
       overflow-y: auto;
-      display: inline-block;
-      @apply(--file-upload-upload-border);
+      @apply(--vaadin-upload-upload-border);
+      @apply(--layout-vertical)
     }
 
     #dropArea {
       text-align: center;
-      @apply(--file-upload-drop-area);
+      @apply(--vaadin-upload-drop-area);
     }
 
     paper-button#button {
       margin-bottom: 20px;
-      @apply(--file-upload-button);
+      @apply(--vaadin-upload-button);
     }
 
     .file {
       padding: 10px 0px;
-      @apply(--file-upload-file);
+      display: table;
+      width: 100%;
+      @apply(--vaadin-upload-file);
     }
 
     .commands {
       float: right;
-      @apply(--file-upload-commands);
+      @apply(--vaadin-upload-commands);
     }
 
-    .commands iron-icon:not([icon="check-circle"]) {
+    .commands iron-icon:not([icon="done"]) {
       cursor: pointer;
       opacity: .9;
-      @apply(--file-upload-commands-faded);
+      @apply(--vaadin-upload-commands-faded);
+      color: #03a9f4;
     }
 
     .commands iron-icon:hover {
       opacity: 1;
-      @apply(--file-upload-commands-hovered);
+      @apply(--vaadin-upload-commands-hovered);
     }
 
     [hidden] {
       display: none;
     }
 
+    .name > span {
+      font-size: 14px;
+    }
+    .error,
+    .status {
+      font-size: 12px;
+      padding-bottom: 3px;
+      white-space: nowrap;
+    }
     .error {
       color: #f40303;
-      font-size: 11px;
-      margin: 2px 0px -3px;
-      @apply(--file-upload-error);
+      @apply(--vaadin-upload-status);
+    }
+    .status {
+      @apply(--vaadin-upload-status);
     }
 
     paper-progress {
       --paper-progress-active-color: #03a9f4;
+      width: 100%;
     }
 
     paper-progress[error] {
       --paper-progress-active-color: #f40303;
     }
+
+    paper-progress[indeterminate] {
+      --paper-progress-container-color: #03a9f4;
+      --paper-progress-active-color: rgba(1, 97, 155, 0.5);
+    }
+
+    paper-progress[uploading][indeterminate] {
+      --paper-progress-container-color: #e0e0e0;
+      --paper-progress-active-color: grey;
+    }
+
+    :host ::content .button, :host ::content .drop {
+      display: inline-block;
+      line-height: 3em;
+    }
+    .button {
+      cursor: pointer;
+    }
   </style>
 
   <template>
     <div>
-      <paper-button id="button" icon="file-upload" class="blue" on-click="_fileClick">
-        <content></content>
-      </paper-button>
-      <div id='UploadBorder'>
-        <div id="dropArea" hidden$="{{!_shownDropText}}">{{dropText}}</div>
+      <div id='UploadBorder' flex>
+        <content select=".drop"></content>
+
         <template is="dom-repeat" items="{{files}}">
           <div class="file">
             <div class="name">
               <span>{{item.name}}</span>
               <div class="commands">
-                <iron-icon icon="autorenew" title="{{retryText}}" on-click="_retryUpload" hidden$="{{!item.error}}"></iron-icon>
-                <iron-icon icon="cancel" title="{{removeText}}" on-click="_cancelUpload" hidden$="{{item.complete}}"></iron-icon>
-                <iron-icon icon="check-circle" title="{{successText}}" hidden$="{{!item.complete}}"></iron-icon>
+                <iron-icon icon="refresh" title="{{retryText}}" on-click="_retryUpload" hidden$="{{!item.error}}"></iron-icon>
+                <iron-icon icon="clear" title="{{removeText}}" on-click="_cancelUpload" hidden$="{{item.complete}}"></iron-icon>
+                <iron-icon icon="done" title="{{successText}}" hidden$="{{!item.complete}}"></iron-icon>
               </div>
             </div>
-            <div class="error" hidden$="{{!item.error}}">{{errorText}}</div>
+            <div class="error" hidden$="{{!item.error}}">{{errorText}} : {{item.error}}</div>
+            <div class="status" hidden$="{{!item.uploading}}">{{item.status}}</div>
             <div hidden$={{progressHidden}}>
-              <paper-progress value$="{{item.progress}}" error$="{{item.error}}"></paper-progress>
+              <paper-progress
+                 value$="{{item.progress}}"
+                 error$="{{item.error}}"
+                 indeterminate$="{{item.indeterminate}}"
+                 uploading$="{{item.uploading}}"
+                 complete$="{{item.complete}}"
+                 ></paper-progress>
             </div>
           </div>
         </template>
+
+        <div class="button" on-click="_fileClick">
+          <content select=".button"></content>
+        </div>
       </div>
     </div>
     <input type="file" id="fileInput" on-change="_fileChange" hidden multiple="{{multi}}" accept="{{accept}}">
@@ -114,17 +169,17 @@
 
   Polymer({
 
-    is: 'file-upload',
+    is: 'vaadin-upload',
 
      /**
       * Fired when a response is received status code 200.
       *
-      * @event success
+      * @event upload-success
     */
      /**
       * Fired when a response is received other status code.
       *
-      * @event error
+      * @event upload-error
     */
     /**
      * Fired when a file is about to be uploaded.
@@ -252,12 +307,17 @@
           value: 'Success'
       },
 
+      uploadingText: {
+          type: String,
+          value: 'Uploading'
+      },
+
       /**
        * `errorText` is the text to display for a failed upload
       */
       errorText: {
           type: String,
-          value: 'Error uploading file...'
+          value: 'Error'
       },
 
       /**
@@ -266,6 +326,36 @@
       _shownDropText: {
         type: Boolean,
         value: false
+      },
+
+      /**
+       * How many concurrent uploads can happen at the same time.
+       *   0 means no limit
+       */
+      concurrent: {
+        type: Number,
+        value: 1
+      },
+
+      /**
+       * Max file size.
+       *  0 means unlimited
+       */
+      maxFileSize: {
+        type: Number,
+        value: 0
+      },
+
+      errorHandler: {
+        type: Function,
+        value: function() {
+          return function() {}
+        }
+      },
+
+      timeout: {
+        type: Number,
+        value: 0
       }
     },
 
@@ -284,9 +374,11 @@
       if (this.noink) {
         this.toggleAttribute("noink", true, this.$.button);
       }
-      if (this.droppable) {
+      if (this.droppable && !this._touchDevice()) {
         this._showDropText();
         this.setupDrop();
+      } else {
+        Polymer.dom(this).querySelector('.drop').style.display = 'none';
       }
     },
 
@@ -314,25 +406,13 @@
         var length = event.dataTransfer.files.length;
         for (var i = 0; i < length; i++) {
           var file = event.dataTransfer.files[i];
-
           // Check if multiple upload is allowed
           if (!this.multi && this.files.length !== 0) {
             return;
           }
-
-          // Check if filetype is accepted
-          var mimeType = ((file.type !== '') ? file.type.match(/^[^\/]*\//)[0] : null);
-          var fileType = file.name.match(/\.[^\.]*$/)[0];
-          if (this.accept !== '' && !(this.accept.indexOf(mimeType) > -1 || this.accept.indexOf(fileType) > -1)) {
-            return;
-          }
-
-          file.progress = 0;
-          file.error = false;
-          file.complete = false;
-          this.push("files", file);
-          this.uploadFile(file);
+          this._addFile(file);
         }
+        this._filesChanged();
       }
     },
 
@@ -349,17 +429,44 @@
     },
 
     /**
-     * Called whenever the list of selected files changes
+     * Called whenever input file element changes.
     */
     _fileChange: function(e) {
       var length = e.target.files.length;
       for (var i = 0; i < length; i++) {
         var file = e.target.files[i];
-        file.progress = 0;
-        file.error = false;
-        file.complete = false;
-        this.push("files", file);
-        this.uploadFile(file);
+        this._addFile(file);
+      }
+      this._filesChanged();
+    },
+
+    _addFile: function(file) {
+      // Check if filetype is accepted
+      var mimeType = ((file.type !== '') ? file.type.match(/^[^\/]*\//)[0] : null);
+      var fileType = file.name.match(/\.[^\.]*$/)[0];
+      if (this.accept !== '' && !(this.accept.indexOf(mimeType) > -1 || this.accept.indexOf(fileType) > -1)) {
+        return;
+      }
+      if (this.maxFileSize && file.size > this.maxFileSize) {
+        return;
+      }
+
+      file.uploading = false;
+      file.progress = 0;
+      file.error = false;
+      file.complete = false;
+      this.push("files", file);
+    },
+
+    _filesChanged: function() {
+      for (var i = 0, j = 0; i < this.files.length && j < this.concurrent; i++) {
+        var file = this.files[i]
+        if (!file.uploading && file.progress < 100) {
+          this.uploadFile(file);
+        }
+        if (file.uploading) {
+          j++;
+        }
       }
     },
 
@@ -394,10 +501,9 @@
       e.model.set("item.error", false);
       e.model.set("item.progress", 0);
       // The async helps give visual feedback of a retry occurring, even though it's less efficient.
-      var self = this;
       this.async(function() {
-        self.uploadFile(e.model.__data__.item);
-      }, 50);
+        this.uploadFile(e.model.__data__.item);
+      }.bind(this), 50);
     },
 
     /**
@@ -405,6 +511,25 @@
     */
     _showDropText: function() {
       this.set("_shownDropText", (!this.files.length && this.droppable));
+    },
+    _touchDevice: function() {
+      try {
+        document.createEvent('TouchEvent');
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+
+    /**
+     * Set a property to an item using Polymer so as it is observed.
+     */
+    _set: function(file, prop, val, updateStyles) {
+      var str = "files." + this.files.indexOf(file) + "." + prop;
+      this.set(str, val);
+      if (updateStyles) {
+        this.updateStyles();
+      }
     },
 
     /**
@@ -416,20 +541,31 @@
       if (!file) {
         return;
       }
-      this.fire('before-upload');
+      this.fire('upload-started');
       this._showDropText();
-      var prefix = "files." + this.files.indexOf(file);
-      var self = this;
 
       var formData = new FormData();
       formData.append("file", file, file.name);
 
+      var ini = new Date().getTime();
       var xhr = file.xhr = new XMLHttpRequest();
-
+      // onprogress is called always after onreadystatechange
       xhr.upload.onprogress = function(e) {
-        var done = e.loaded, total = e.total;
-        self.set(prefix + ".progress", Math.floor((done/total)*1000)/10);
-      };
+        if (file.error) return;
+
+        var done = e.loaded, total = e.total, progress = ~~(done/total*100);
+        var ellapsed = (new Date().getTime() - ini) / 1000;
+        var rem = ~~(ellapsed * (100 / progress - 1));
+        this._set(file, "progress", progress);
+        this._set(file, "status", ~~(total / 1024) + " MB (" + progress + "%)  about " + rem + " seconds remaining");
+
+        if (done >= total) {
+          this._set(file, "status", undefined);
+          this._set(file, "uploading", undefined, true);
+          this._filesChanged();
+        }
+        this._set(file, "indeterminate", done <= 0 || done >= total, true);
+      }.bind(this);
 
       var url = this.target.replace("<name>", file.name);
       xhr.open(this.method, url, true);
@@ -438,18 +574,36 @@
           xhr.setRequestHeader(key, this.headers[key]);
         }
       }
-      xhr.onload = function(e) {
-        if (xhr.status === 200) {
-          self.fire("success", {xhr: xhr});
-          self.set(prefix + ".complete", true);
-        } else {
-          self.set(prefix + ".error", true);
-          self.set(prefix + ".complete", false);
-          self.set(prefix + ".progress", 100);
-          self.updateStyles();
-          self.fire("error", {xhr:xhr});
+
+      if (this.timeout) {
+        xhr.timeout = this.timeout;
+      }
+
+      // More reliable than xhr.onload
+      xhr.onreadystatechange = function(e) {
+        // We are not interested in states previous to 4
+        if (xhr.readyState != 4) {
+          return;
         }
-      };
+
+        this._set(file, "indeterminate", undefined);
+        this._set(file, "uploading", undefined);
+        var error = this.errorHandler(file, xhr);
+        if (!error) {
+          if (xhr.status == 0) error = 'Server Unavailable';
+          else if (xhr.status > 500) error = 'Unexpected Server Error';
+          else if (xhr.status > 400) error = 'Forbiden';
+        }
+        this._set(file, "error", error);
+        this._set(file, "complete", !error);
+        this._set(file, "progress", 100, true);
+        this.fire("upload" + (error ? "error" : "success"), xhr);
+        this._filesChanged();
+      }.bind(this);
+
+      this._set(file, "uploading", true);
+      this._set(file, "indeterminate", true);
+      this._set(file, "uploading", true, true);
       xhr.send(formData);
     }
   });
