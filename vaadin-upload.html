@@ -35,10 +35,10 @@ Example:
       vertical-align: middle;
       color: #555;
       padding: 20px;
-      max-height: 300px;
       overflow-y: auto;
       @apply(--vaadin-upload-upload-border);
       @apply(--layout-vertical)
+      margin-bottom: 40px;
     }
 
     #dropArea {
@@ -87,6 +87,8 @@ Example:
       font-size: 12px;
       padding-bottom: 3px;
       white-space: nowrap;
+      overflow: hidden;
+      max-width: 100%;
     }
     .error {
       color: #f40303;
@@ -356,13 +358,25 @@ Example:
       timeout: {
         type: Number,
         value: 0
+      },
+
+      noauto: {
+        type: Boolean,
+        value: false
       }
+
     },
 
     /**
      * Clears the list of files
     */
     clear: function() {
+      for (var i = 0; i < this.files.length; i++) {
+        var file = this.files[i];
+        if (file.xhr) {
+          file.xhr.abort();
+        }
+      }
       this.set("files", []);
       this._showDropText();
     },
@@ -419,7 +433,35 @@ Example:
     /**
      * Clicks the invisible file input
     */
-    _fileClick: function() {
+    _fileClick: function(e) {
+      // TODO WEAK
+      var l = e.srcElement.classList;
+      if (!l || !l.contains('small')) {
+        l = e.srcElement.parentElement.classList;
+      }
+      if (l && l.contains('small')) {
+        if (l.contains('add')) {
+        } else if (l.contains('start')) {
+          this._filesChanged();
+          return;
+        } else if (l.contains('cancel')) {
+          this.clear();
+          return;
+        } else if (l.contains('pause')) {
+          for (var i = 0; i < this.files.length; i++) {
+            var file = this.files[i];
+            if (file.xhr) {
+              file.abort = true;
+              file.xhr.abort();
+            }
+          }
+          return;
+        } else if (l.contains('resume')) {
+          this._filesChanged();
+          return;
+        }
+      }
+
       var elem = this.$.fileInput;
       if (elem && document.createEvent) { // sanity check
         var evt = document.createEvent("MouseEvents");
@@ -437,7 +479,7 @@ Example:
         var file = e.target.files[i];
         this._addFile(file);
       }
-      this._filesChanged();
+      if (!this.noauto) this._filesChanged();
     },
 
     _addFile: function(file) {
@@ -476,10 +518,13 @@ Example:
      * @param {object} a file, an element of the files array
     */
     cancel: function(file) {
-      if (file && file.xhr) {
-        file.xhr.abort();
+      if (file) {
+        if (file.xhr) {
+          file.xhr.abort();
+        }
         this.splice("files", this.files.indexOf(file), 1);
         this._showDropText();
+        this._filesChanged();
       }
     },
 
@@ -586,8 +631,15 @@ Example:
           return;
         }
 
+
         this._set(file, "indeterminate", undefined);
         this._set(file, "uploading", undefined);
+        if (file.abort) {
+          this._set(file, "error", undefined);
+          this._set(file, "complete", undefined);
+          this._set(file, "progress", 0, true);
+          return;
+        }
         var error = this.errorHandler(file, xhr);
         if (!error) {
           if (xhr.status == 0) error = 'Server Unavailable';

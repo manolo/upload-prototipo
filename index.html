@@ -6,8 +6,10 @@
   <script src="../webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="../polymer/polymer.html">
   <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+  <link rel="import" href="../paper-button/paper-button.html">
+  <link rel="import" href="../iron-icons/av-icons.html">
   <link rel="import" href="vaadin-upload.html">
-  <style>
+  <style is="custom-style">
     body {
       font-family: Arial;
     }
@@ -24,15 +26,39 @@
        text-align: center;
     }
     .button2 {
+      width: 72px;
       position: absolute;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
       background: #1DB6E4;
       color: white;
-      padding-left: 10px;
-      padding-right: 10px;
-      margin-left: -55px;
+      padding: 6px 16px;
+      font-size: 12px;
+      line-height: 24px;
+      white-space: nowrap;
     }
-    vaadin-upload {
-      margin: 10px;
+    .flex-horizontal {
+      @apply(--layout-horizontal);
+    }
+    .flexchild {
+      @apply(--layout-flex);
+    }
+    .flex-center-justified {
+         @apply(--layout-horizontal);
+         @apply(--layout-center-justified);
+       }
+    .small {
+      padding: 6px 16px;
+      font-size: 12px;
+      line-height: 24px;
+      border-radius: 3px;
+      margin: 0 8px;
+      white-space: nowrap;
+    }
+    .start {
+      color: white;
+      background: #03a9f4;
     }
   </style>
 </head>
@@ -42,11 +68,11 @@
 <vaadin-upload id="u1"
    target="http://manolo-demo:8080/upload/servlet.gupld" method="POST"
    droppable="true" multi="true" accept="image/*"
-   headers='{"Accepddt":"application/json"}'
+   headers='{"Accept":"application/json"}'
    max-file-size="0"
    >
 
-  <div class="button">
+  <div class="container flex-center-justified button">
     ADD FILE(S)
   </div>
   <div class="drop">
@@ -56,13 +82,35 @@
 
 </vaadin-upload>
 
-<vaadin-upload id="u1"
+<vaadin-upload id="u2"
    target="http://manolo-demo:8080/upload/servlet.gupld" method="POST"
-   droppable="true" multi="true" accept="image/*">
+   droppable="true" multi="true" accept="image/*,video/*">
 
-  <div class="button button2">
+  <div class="container button button2">
     ADD FILE(S)
   </div>
+  <div class="drop">
+    <iron-icon icon="cloud-upload"></iron-icon>
+    Drop files here ...
+  </div>
+
+</vaadin-upload>
+
+<vaadin-upload id="u3"
+   target="http://manolo-demo:8080/upload/servlet.gupld" method="POST"
+   droppable="true" multi="true" accept="image/*"
+   noauto concurrent="3"
+   >
+
+   <div class="button container flex-horizontal">
+       <div class="small add">ADD FILES</div>
+       <div class="small start">START UPLOAD</div>
+       <div class="small flexchild"></div>
+       <div class="small cancel"><iron-icon icon="clear"></iron-icon> CANCEL ALL</div>
+       <div class="small pause"><iron-icon icon="av:pause"></iron-icon> PAUSE ALL</div>
+       <div class="small resume"><iron-icon icon="refresh"></iron-icon> RESUME ALL</div>
+   </div>
+
   <div class="drop">
     <iron-icon icon="cloud-upload"></iron-icon>
     Drop files here ...
