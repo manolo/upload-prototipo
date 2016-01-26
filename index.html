@@ -4,11 +4,6 @@
 <head>
   <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="bower_components/polymer/polymer.html">
-  <link rel="import" href="bower_components/paper-input/paper-input.html">
-  <link rel="import" href="bower_components/iron-form/iron-form.html">
-  <link rel="import" href="bower_components/file-upload/file-upload.html">
-  <link rel="import" href="bower_components/vaadin-combo-box/vaadin-combo-box.html">
-  <link rel="import" href="bower_components/paper-checkbox/paper-checkbox.html">
   <link rel="import" href="bower_components/file-upload/file-upload.html">
   <style>
     form {
@@ -23,46 +18,48 @@
 </head>
 <body>
 
-  <paper-progress id="progress" value="0" class="blue"></paper-progress><br>
-
-  <form is="iron-form" enctype="multipart/form-data" content-type="multipart/form-data" id="formGet" method="post" action="http://gwtupload.alcala.org/gupld/servlet.gupld">
-    <paper-input name="name" label="Name" required value="a"></paper-input>
-    <paper-input name="animal" label="Favourite animal" required value="b"></paper-input>
-    <vaadin-combo-box label="Gender" required value="male"></vaadin-combo-box>
 
 
-    <paper-checkbox >Subscribe to news</paper-checkbox>
-    <br>
-    <paper-button raised onclick="submitHandler(event)">Submit</paper-button>
-    <paper-button raised onclick="resetHandler(event)">Reset</paper-button>
-  </form>
+      <h2>Bad URL</h2>
+      <file-upload
+        target="http://manolo-demo/upload/servlet.gupld"
+        >Choose File</file-upload>
 
-  <file-upload method="post" multi="true"  target="http://gwtupload.alcala.org/gupld/servlet.gupld">UploadMe</file-upload>
+     <h2>Server responds 500 </h2>
+     <file-upload
+          target="http://manolo-demo:8080/upload/servlet.gupld"
+          >Choose File</file-upload>
 
+      <h2>Server responds 200 with error text</h2>
+      <file-upload
+        target="http://manolo-demo:8080/upload/servlet.gupld"
+        method="POST"
+        >Choose File</file-upload>
 
-  <p>An example of <code>&lt;file-upload&gt;</code>:</p>
+      <h2>With drop enabled and images only:</h2>
+      <file-upload
+        target="http://manolo-demo:8080/upload/servlet.gupld"
+        method="POST"
+        droppable="true" raised="true" multi="true" accept="image/*">Choose File</file-upload>
 
-<h2>Without drop enabled:</h2>
-<file-upload>Choose File</file-upload>
-
-<h2>With drop enabled and images only:</h2>
-<file-upload droppable="true" raised="true" multi="true" accept="image/*">Choose File</file-upload>
-
-<h2>Images only</h2>
-<file-upload accept="image/*">Choose File</file-upload>
-
-
+      <h2> More cases</h2>
+      <p>
+        <ul>
+          <li> Server Starting not handled
+          <li> Slow server processing not handled
+          <li> Does not catch server validation errors
+          <li> Connection failures
+        </ul>
+        <file-upload
+          target="http://gwtupload.alcala.org/gupld/servlet.gupld"
+          method="POST"
+          raised="true" multi="true"
+          accept="image/*">Choose File</file-upload>
+      </p>
 
 <script type="text/javascript">
-  function submitHandler() {
-    document.querySelector('form').submit();
-  }
 
   HTMLImports.whenReady(function(){
-    document.querySelector('form').addEventListener('iron-form-presubmit', function(e){
-      console.log("ADSFAADFAF", e);
-    });
-    document.querySelector('vaadin-combo-box').items = ["male","female"]
   });
 </script>
 </body>
