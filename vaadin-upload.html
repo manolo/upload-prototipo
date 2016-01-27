@@ -6,14 +6,13 @@ This code may only be used under the Apache-2.0 license
 <link rel="import" href="../polymer/polymer.html">
 
 <!--
-An element for uploading files to server.
+Web component for uploading files to the server.
 Example:
     <vaadin-upload target="destination_url"></vaadin-upload>
 
 @demo
 -->
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-progress/paper-progress.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 
@@ -38,17 +37,12 @@ Example:
       overflow-y: auto;
       @apply(--vaadin-upload-upload-border);
       @apply(--layout-vertical)
-      margin-bottom: 40px;
+      margin: 10px;
     }
 
     #dropArea {
       text-align: center;
       @apply(--vaadin-upload-drop-area);
-    }
-
-    paper-button#button {
-      margin-bottom: 20px;
-      @apply(--vaadin-upload-button);
     }
 
     .file {
@@ -69,7 +63,9 @@ Example:
       @apply(--vaadin-upload-commands-faded);
       color: #03a9f4;
     }
-
+    .commands iron-icon[icon="warning"] {
+      color: #f40303;
+    }
     .commands iron-icon:hover {
       opacity: 1;
       @apply(--vaadin-upload-commands-hovered);
@@ -79,7 +75,23 @@ Example:
       display: none;
     }
 
-    .name > span {
+    .fileRow {
+      @apply(--layout-horizontal);
+      @apply(--layout-center);
+    }
+
+    .nameWithStatus {
+      @apply(--layout-flex);
+      width: 1px;
+    }
+
+    .name,
+    .error,
+    .status {
+      text-overflow: ellipsis;
+    }
+
+    .name {
       font-size: 14px;
     }
     .error,
@@ -133,16 +145,19 @@ Example:
 
         <template is="dom-repeat" items="{{files}}">
           <div class="file">
-            <div class="name">
-              <span>{{item.name}}</span>
+            <div class="fileRow">
+              <div class="nameWithStatus">
+                <div class="name">{{item.name}}</div>
+                <div class="error" hidden$="{{!item.error}}">{{errorText}} : {{item.error}}</div>
+                <div class="status" hidden$="{{!item.uploading}}">{{item.status}}</div>
+              </div>
               <div class="commands">
                 <iron-icon icon="refresh" title="{{retryText}}" on-click="_retryUpload" hidden$="{{!item.error}}"></iron-icon>
                 <iron-icon icon="clear" title="{{removeText}}" on-click="_cancelUpload" hidden$="{{item.complete}}"></iron-icon>
                 <iron-icon icon="done" title="{{successText}}" hidden$="{{!item.complete}}"></iron-icon>
+                <iron-icon icon="warning" title="{{errorText}}" hidden$="{{!item.error}}"></iron-icon>
               </div>
             </div>
-            <div class="error" hidden$="{{!item.error}}">{{errorText}} : {{item.error}}</div>
-            <div class="status" hidden$="{{!item.uploading}}">{{item.status}}</div>
             <div hidden$={{progressHidden}}>
               <paper-progress
                  value$="{{item.progress}}"
@@ -489,7 +504,7 @@ Example:
       if (this.accept !== '' && !(this.accept.indexOf(mimeType) > -1 || this.accept.indexOf(fileType) > -1)) {
         return;
       }
-      if (this.maxFileSize && file.size > this.maxFileSize) {
+      if (this.maxFileSize > 0 && file.size > this.maxFileSize) {
         return;
       }
 
@@ -586,7 +601,7 @@ Example:
       if (!file) {
         return;
       }
-      this.fire('upload-started');
+      this.fire('upload-started', {file:file});
       this._showDropText();
 
       var formData = new FormData();
@@ -602,7 +617,8 @@ Example:
         var ellapsed = (new Date().getTime() - ini) / 1000;
         var rem = ~~(ellapsed * (100 / progress - 1));
         this._set(file, "progress", progress);
-        this._set(file, "status", ~~(total / 1024) + " MB (" + progress + "%)  about " + rem + " seconds remaining");
+        var mb = total > (1024*1024) ? ((~~(total/1024/1024*10)/10) + " MB") : (~~(total/1024) + " KB")
+        this._set(file, "status", mb + " (" + progress + "%)  about " + rem + " seconds remaining");
 
         if (done >= total) {
           this._set(file, "status", undefined);
@@ -614,10 +630,16 @@ Example:
 
       var url = this.target.replace("<name>", file.name);
       xhr.open(this.method, url, true);
-      for (key in this.headers) {
-        if (this.headers.hasOwnProperty(key)) {
-          xhr.setRequestHeader(key, this.headers[key]);
+
+      if (typeof this.headers == 'string') {
+        try {
+          this.headers = JSON.parse(this.headers);
+        } catch (e) {
+          this.headers = undefined;
         }
+      }
+      for (key in this.headers) {
+        xhr.setRequestHeader(key, this.headers[key]);
       }
 
       if (this.timeout) {
@@ -630,7 +652,6 @@ Example:
         if (xhr.readyState != 4) {
           return;
         }
-
 
         this._set(file, "indeterminate", undefined);
         this._set(file, "uploading", undefined);
@@ -649,7 +670,7 @@ Example:
         this._set(file, "error", error);
         this._set(file, "complete", !error);
         this._set(file, "progress", 100, true);
-        this.fire("upload" + (error ? "error" : "success"), xhr);
+        this.fire("upload-" + (error ? "error" : "success"), {file: file, xhr: xhr});
         this._filesChanged();
       }.bind(this);
 

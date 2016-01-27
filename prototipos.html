@@ -1,0 +1,158 @@
+<!--
+@license
+Copyright (c) 2016 Vaadin. All rights reserved.
+This code may only be used under the Apache-2.0 license
+-->
+<link rel="import" href="vaadin-upload.html">
+
+<!--
+A bunch of visual prototypes for the vaadin-upload component
+-->
+<dom-module id='vaadin-upload-proto0'>
+  <style is='custom-style'>
+    .drop {
+      font-size: 130%;
+       display: inline-block;
+       text-align: center;
+    }
+  </style>
+  <template>
+    <vaadin-upload
+       target={{target}} method={{method}} droppable="true"
+       headers='{{headers}}' max-file-size="{{maxFileSize}}"
+       timeout="{{timeout}}" concurrent={{concurrent}} noauto={{noauto}}
+       multi="true" accept="image/*,video/*"
+       files="{{files}}">
+       <div class="drop">
+         <iron-icon icon="cloud-upload"></iron-icon>
+         Drop files here ...
+       </div>
+       <content></content>
+    </vaadin-upload>
+  </template>
+</dom-module>
+
+<dom-module id='vaadin-upload-proto1'>
+  <style is='custom-style'>
+    :host /deep/ .button {
+      @apply(--layout-horizontal);
+      @apply(--layout-center-justified);
+      display: inline-block;
+      text-align: center;
+      color: #1DB6E4;
+      font-size: 16px;
+      font-weight: bold;
+    }
+  </style>
+  <template>
+    <vaadin-upload-proto0 target={{target}} method={{method}} droppable="true"
+      headers='{{headers}}' max-file-size="{{maxFileSize}}"
+      timeout="{{timeout}}" concurrent={{concurrent}} noauto={{noauto}}
+      multi="true" accept="image/*,video/*"
+      files="{{files}}">
+      >
+        <div class="container flex-center-justified button">
+          ADD FILE(S)
+        </div>
+        <content></content>
+    </vaadin-upload-proto0>
+  </template>
+</dom-module>
+
+<dom-module id='vaadin-upload-proto2'>
+  <style is='custom-style'>
+  :host /deep/ .button {
+    width: 6em;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    background: #1DB6E4;
+    color: white !important;
+    padding: 6px 16px;
+    line-height: 24px;
+    white-space: nowrap;
+  }
+  </style>
+  <template>
+    <vaadin-upload-proto1 target={{target}} method={{method}} droppable="true"
+      headers='{{headers}}' max-file-size="{{maxFileSize}}"
+      timeout="{{timeout}}" concurrent={{concurrent}} noauto={{noauto}}
+      multi="true" accept="image/*,video/*"
+      files="{{files}}">
+    </vaadin-upload-proto1>
+  </template>
+</dom-module>
+
+<dom-module id='vaadin-upload-proto3'>
+  <style is='custom-style'>
+    .flex-horizontal {
+      @apply(--layout-horizontal);
+    }
+    .flexchild {
+      @apply(--layout-flex);
+    }
+    .flex-center-justified {
+      @apply(--layout-horizontal);
+      @apply(--layout-center-justified);
+    }
+    .small {
+      padding: 6px 10px;
+      font-size: 12px;
+      line-height: 24px;
+      border-radius: 3px;
+      white-space: nowrap;
+      color: #03a9f4;
+    }
+    .start {
+      color: white;
+      background: #03a9f4;
+      min-width: 90px;
+    }
+    iron-icon {
+      width: 18px;
+      height: 18px;
+      margin-top: -4px;
+    }
+    .button {
+      margin-top: 15px;
+    }
+  </style>
+  <template>
+    <vaadin-upload-proto0 target={{target}} method={{method}} droppable="true"
+      headers='{{headers}}' max-file-size="{{maxFileSize}}"
+      timeout="{{timeout}}" concurrent={{concurrent}} noauto="true"
+      multi="true" accept="image/*,video/*"
+      files="{{files}}">
+      >
+      <div class="button container flex-horizontal">
+        {{files}}
+          <div class="small add">ADD FILES</div>
+          <div class="small start" hidden$="{{!files.length}}">START UPLOAD</div>
+          <div class="small flexchild"></div>
+          <div class="small cancel" hidden$="{{!files.length}}"><iron-icon icon="clear"></iron-icon> CANCEL ALL</div>
+          <div class="small pause" hidden$="{{!files.length}}"><iron-icon icon="av:pause"></iron-icon> PAUSE ALL</div>
+          <div class="small resume" hidden$="{{!files.length}}"><iron-icon icon="refresh"></iron-icon> RESUME ALL</div>
+      </div>
+    </vaadin-upload-proto0>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "vaadin-upload-proto0",
+    properties: {headers: {type: Object}, files: {type: Array, value: []}}
+  });
+  Polymer({
+    is: "vaadin-upload-proto1",
+    properties: {headers: {type: Object}, files: {type: Array, value: []}}
+  });
+  Polymer({
+    is: "vaadin-upload-proto2",
+    properties: {headers: {type: Object}, files: {type: Array, value: []}}
+  });
+  Polymer({
+    is: "vaadin-upload-proto3",
+    properties: {headers: {type: Object}, files: {type: Array, value: []}}
+  });
+</script>

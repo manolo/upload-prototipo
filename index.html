@@ -4,137 +4,148 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="../webcomponentsjs/webcomponents-lite.js"></script>
-  <link rel="import" href="../polymer/polymer.html">
-  <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
-  <link rel="import" href="../paper-button/paper-button.html">
+  <link rel="import" href="prototipos.html">
   <link rel="import" href="../iron-icons/av-icons.html">
-  <link rel="import" href="vaadin-upload.html">
-  <style is="custom-style">
+  <style >
     body {
       font-family: Arial;
     }
-    .button {
-       color: #1DB6E4;
-       font-size: 95%;
-       font-weight: bold;
+    h3 {
+      margin-top: 32px;
+      border-top: solid 1px grey;
+      padding: 10px;
+      text-align: center;
+      color: brown;
     }
-    .drop {
-      font-size: 130%;
-    }
-    .button, .drop {
-       display: inline-block;
-       text-align: center;
-    }
-    .button2 {
-      width: 72px;
-      position: absolute;
-      left: 0;
-      right: 0;
-      margin: 0 auto;
-      background: #1DB6E4;
-      color: white;
-      padding: 6px 16px;
-      font-size: 12px;
-      line-height: 24px;
-      white-space: nowrap;
-    }
-    .flex-horizontal {
-      @apply(--layout-horizontal);
-    }
-    .flexchild {
-      @apply(--layout-flex);
-    }
-    .flex-center-justified {
-         @apply(--layout-horizontal);
-         @apply(--layout-center-justified);
-       }
-    .small {
-      padding: 6px 16px;
-      font-size: 12px;
-      line-height: 24px;
-      border-radius: 3px;
-      margin: 0 8px;
-      white-space: nowrap;
-    }
-    .start {
-      color: white;
-      background: #03a9f4;
+    p {
+      margin-top: -10px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-<!-- http://manolo-demo:8080/upload/servlet.gupld  -->
-<!-- http://gwtupload.alcala.org/gupld/servlet.gupld -->
-<vaadin-upload id="u1"
-   target="http://manolo-demo:8080/upload/servlet.gupld" method="POST"
-   droppable="true" multi="true" accept="image/*"
-   headers='{"Accept":"application/json"}'
-   max-file-size="0"
-   >
 
-  <div class="container flex-center-justified button">
-    ADD FILE(S)
-  </div>
-  <div class="drop">
-    <iron-icon icon="cloud-upload"></iron-icon>
-    Drop files here ...
-  </div>
+<h3>Prototipo 1</h3>
+<p>autoupload, images/videos, concurrent=1, timeout=15seg</p>
+<vaadin-upload-proto1
+  target="http://192.168.4.181:8080/upload/servlet.gupld"
+  method="POST"
+  accept="image/*,video/*"
+  headers='{"Accept":"application/json"}'
+  timeout=15000
+></vaadin-upload-proto1>
 
-</vaadin-upload>
+<h3>Prototipo 2</h3>
+<p>autoupload, images/videos, concurrent=2</p>
+<vaadin-upload-proto2
+  target="http://192.168.4.181:8080/upload/servlet.gupld"
+  method="POST"
+  accept="image/*,video/*"
+  headers='{"Accept":"application/json"}'
+  concurrent=2
+></vaadin-upload-proto2>
 
-<vaadin-upload id="u2"
-   target="http://manolo-demo:8080/upload/servlet.gupld" method="POST"
-   droppable="true" multi="true" accept="image/*,video/*">
+<h3>Prototipo 3</h3>
+<p>no autoupload, images/videos, concurrent=2, maxFileSize = 2MB</p>
+<vaadin-upload-proto3
+  target="http://192.168.4.181:8080/upload/servlet.gupld"
+  method="POST"
+  accept="image/*,video/*"
+  headers='{"Accept":"application/json"}'
+  concurrent=2
+  max-file-size=2048000
+></vaadin-upload-proto3>
 
-  <div class="container button button2">
-    ADD FILE(S)
-  </div>
-  <div class="drop">
-    <iron-icon icon="cloud-upload"></iron-icon>
-    Drop files here ...
-  </div>
+<h3>Case 1</h3>
+<p>incorrect url
+<vaadin-upload-proto1
+  target="http://foo/var"
+></vaadin-upload-proto1>
 
-</vaadin-upload>
+<h3>Case 2</h3>
+<p>incorrect server call (response=500)</p>
+<vaadin-upload-proto1
+  target="http://192.168.4.181:8080/upload/servlet.gupld"
+></vaadin-upload-proto1>
 
-<vaadin-upload id="u3"
-   target="http://manolo-demo:8080/upload/servlet.gupld" method="POST"
-   droppable="true" multi="true" accept="image/*"
-   noauto concurrent="3"
-   >
+<h3>Case 3</h3>
+<p>incorrect server content <br />(response!=200 but content is xml instead of json)</p>
+<vaadin-upload-proto1
+  target="http://192.168.4.181:8080/upload/servlet.gupld"
+></vaadin-upload-proto1>
 
-   <div class="button container flex-horizontal">
-       <div class="small add">ADD FILES</div>
-       <div class="small start">START UPLOAD</div>
-       <div class="small flexchild"></div>
-       <div class="small cancel"><iron-icon icon="clear"></iron-icon> CANCEL ALL</div>
-       <div class="small pause"><iron-icon icon="av:pause"></iron-icon> PAUSE ALL</div>
-       <div class="small resume"><iron-icon icon="refresh"></iron-icon> RESUME ALL</div>
-   </div>
-
-  <div class="drop">
-    <iron-icon icon="cloud-upload"></iron-icon>
-    Drop files here ...
-  </div>
-
-</vaadin-upload>
-
+<h3>Case 4</h3>
+<p>Data binding</p>
+<template id='custom' is="dom-bind">
+  <style>
+    .form {
+      padding: 20px;
+      border: solid 1px grey;
+    }
+    .form input {
+      margin: 8px;
+    }
+  </style>
+  <vaadin-upload-proto1
+    target={{target}} method={{method}} droppable="true"
+    headers='{{headers}}' max-file-size="{{maxFileSize}}"
+    timeout="{{timeout}}" concurrent={{concurrent}} noauto={{noauto}}
+    multi="{{multi}}" accept="{{accept}}"
+  ></vaadin-upload-proto1>
+  <div class="form">
+    Target : <input value="{{target::input}}" size="50"/> <br />
+    Method : <input value="{{method::input}}" size="50"/> <br />
+    accept : <input value="{{accept::input}}" size="50"/> <br />
+    headers : <input value="{{headers::input}}" size="50"/> <br />
+    max-file-size : <input value="{{maxFileSize::input}}" size="50"/> <br />
+    xhr timeout : <input value="{{timeout::input}}" size="50"/> <br />
+    concurrent : <input value="{{concurrent::input}}" size="50"/> <br />
+    Multi : <input type="checkbox" checked="{{multi}}"> <br />
+    noauto : <input type="checkbox" checked="{{noauto}}"> <br />
+</div>
+</template>
 
 <script type="text/javascript">
   HTMLImports.whenReady(function() {
-    document.querySelector('#u1').addEventListener('upload-success', function(e){
-      console.log("success", e.detail.xhr);
-    })
-    document.querySelector('#u1').addEventListener('upload-error', function(e){
-      console.log("error", e.detail.xhr);
-    })
-    document.querySelector('#u1').errorHandler = function(file, xhr) {
-      try {
-        var json = JSON.parse(xhr.responseText);
-        if (!json.error) return json.error
-      } catch (e) {
-        return "Unknown server response. " + xhr.responseText.substr(0, 20);
+
+    // Configure data binding form use case
+    var b = document.getElementById('custom');
+    b.target="http://192.168.4.181:8080/upload/servlet.gupld"
+    b.method="POST"
+    b.accept="image/*,video/*"
+    b.headers='{"Accept":"application/json"}'
+    b.maxFileSize = 0;
+    b.timeout = 0;
+    b.concurrent = 1;
+    b.multi = true;
+    b.noauto = false;
+
+    // Add event handlers and error handlers to all the uploaders
+    [].forEach.call(document.querySelectorAll('vaadin-upload'), function(e){
+      // Events fired by the uploader
+      e.addEventListener('upload-started', function(e){
+        console.log("upload-started event", e.detail.file.name, e.detail);
+      })
+      e.addEventListener('upload-success', function(e){
+        console.log("upload-success event", e.detail.file.name, e.detail);
+      })
+      e.addEventListener('upload-error', function(e){
+        console.log("upload-error event", e.detail.file.name, e.detail);
+      })
+
+      // We know how to handle the server response.
+      // Returning not null means that something went wrong.
+      e.errorHandler = function(file, xhr) {
+        if (xhr.status == 200) {
+          try {
+            // Server returns a json text
+            return JSON.parse(xhr.responseText).error;
+          } catch (e) {
+            return "Unknown server response. " + xhr.responseText;
+          }
+        }
       }
-    }
+    });
   });
 </script>
 </body>

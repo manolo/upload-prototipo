@@ -21,12 +21,8 @@
     "tests"
   ],
   "dependencies": {
-    "dropzone": "enyo/dropzone#~4.2.0",
-    "file-upload": "winhowes/file-upload#~1.6.3",
-    "paper-input": "PolymerElements/paper-input#~1.1.5",
-    "iron-form": "PolymerElements/iron-form#~1.0.13",
-    "paper-progress": "PolymerElements/paper-progress#~1.0.8",
-    "vaadin-combo-box": "vaadin/vaadin-combo-box#~1.0.0-alpha3",
-    "paper-checkbox": "PolymerElements/paper-checkbox#~1.1.0"
+    "iron-icons": "PolymerElements/iron-icons#latest",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#latest",
+    "paper-progress": "PolymerElements/paper-progress#latest"
   }
 }
