@@ -149,7 +149,7 @@ Example:
               <div class="nameWithStatus">
                 <div class="name">{{item.name}}</div>
                 <div class="error" hidden$="{{!item.error}}">{{errorText}} : {{item.error}}</div>
-                <div class="status" hidden$="{{!item.uploading}}">{{item.status}}</div>
+                <div class="status" hidden$="{{!item.status}}">{{item.status}}</div>
               </div>
               <div class="commands">
                 <iron-icon icon="refresh" title="{{retryText}}" on-click="_retryUpload" hidden$="{{!item.error}}"></iron-icon>
@@ -441,7 +441,7 @@ Example:
           }
           this._addFile(file);
         }
-        this._filesChanged();
+        if (!this.noauto) this._filesChanged();
       }
     },
 
@@ -465,7 +465,7 @@ Example:
         } else if (l.contains('pause')) {
           for (var i = 0; i < this.files.length; i++) {
             var file = this.files[i];
-            if (file.xhr) {
+            if (file.uploading && file.xhr) {
               file.abort = true;
               file.xhr.abort();
             }
@@ -508,6 +508,7 @@ Example:
         return;
       }
 
+      this.fire("upload-file-added", {file:file});
       file.uploading = false;
       file.progress = 0;
       file.error = false;
@@ -558,8 +559,10 @@ Example:
      * @param {object}, an event object
     */
     _retryUpload: function(e) {
-      e.model.set("item.error", false);
+      e.model.set("item.error", undefined);
       e.model.set("item.progress", 0);
+      e.model.set("item.status", undefined);
+      e.model.set("item.abort", undefined, true);
       // The async helps give visual feedback of a retry occurring, even though it's less efficient.
       this.async(function() {
         this.uploadFile(e.model.__data__.item);
@@ -608,24 +611,51 @@ Example:
       formData.append("file", file, file.name);
 
       var ini = new Date().getTime();
+      var last = ini;
       var xhr = file.xhr = new XMLHttpRequest();
+      var stalledId;
       // onprogress is called always after onreadystatechange
       xhr.upload.onprogress = function(e) {
+        clearTimeout(stalledId);
         if (file.error) return;
 
         var done = e.loaded, total = e.total, progress = ~~(done/total*100);
-        var ellapsed = (new Date().getTime() - ini) / 1000;
-        var rem = ~~(ellapsed * (100 / progress - 1));
+        this._set(file, "transferred", done);
         this._set(file, "progress", progress);
-        var mb = total > (1024*1024) ? ((~~(total/1024/1024*10)/10) + " MB") : (~~(total/1024) + " KB")
-        this._set(file, "status", mb + " (" + progress + "%)  about " + rem + " seconds remaining");
 
+        last = new Date().getTime();
+        var ellapsed = (last - ini) / 1000;
+        var rem = 1 + ~~(ellapsed * (100 / progress - 1));
+        this._set(file, "remaining", rem);
+
+        var totalStr = total > (1024*1024) ? ((~~(total/1024/1024*10)/10) + " MB") : (~~(total/1024) + " KB");
+        var doneStr = done > (1024*1024) ? ((~~(done/1024/1024*10)/10) + " MB") : (~~(done/1024) + " KB");
+        this._set(file, "totalStr", totalStr);
+        this._set(file, "doneStr", doneStr);
+        var speed = ~~(total / ellapsed / 1024);
+        this._set(file, "speed", speed);
+
+        var status = file.totalStr + " (" + file.progress + "%)" ;
+
+        if (file.abort) {
+          this._set(file, "status", status + " paused.");
+        } else {
+          this._set(file, "status", status + " about " + file.remaining + " seconds remaining.");
+        }
         if (done >= total) {
-          this._set(file, "status", undefined);
+          this._set(file, "status", "File processing", true);
           this._set(file, "uploading", undefined, true);
+          clearTimeout(stalledId);
           this._filesChanged();
         }
         this._set(file, "indeterminate", done <= 0 || done >= total, true);
+        this.fire("upload-progress", {file: file});
+
+        stalledId = setTimeout(function() {
+          if (file.uploading)
+             this._set(file, status + " stalled ");
+        }.bind(this), 2000);
+
       }.bind(this);
 
       var url = this.target.replace("<name>", file.name);
@@ -648,6 +678,8 @@ Example:
 
       // More reliable than xhr.onload
       xhr.onreadystatechange = function(e) {
+        clearTimeout(stalledId);
+
         // We are not interested in states previous to 4
         if (xhr.readyState != 4) {
           return;
@@ -655,10 +687,12 @@ Example:
 
         this._set(file, "indeterminate", undefined);
         this._set(file, "uploading", undefined);
+        this._set(file, "status", undefined);
         if (file.abort) {
           this._set(file, "error", undefined);
           this._set(file, "complete", undefined);
           this._set(file, "progress", 0, true);
+
           return;
         }
         var error = this.errorHandler(file, xhr);
@@ -674,8 +708,10 @@ Example:
         this._filesChanged();
       }.bind(this);
 
+      this._set(file, "status", "Connecting");
       this._set(file, "uploading", true);
       this._set(file, "indeterminate", true);
+      this._set(file, "abort", undefined);
       this._set(file, "uploading", true, true);
       xhr.send(formData);
     }
